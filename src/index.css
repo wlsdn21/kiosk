@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { color-scheme: light; }
+body { @apply bg-neutral-100 text-neutral-900; }
+#root { @apply mx-auto max-w-kiosk min-h-screen bg-white; }
