@@ -11,21 +11,19 @@ export default function Checkout() {
   const amount = total()
   const widgetsRef = useRef<Awaited<ReturnType<typeof mountPaymentWidget>> | null>(null)
   const orderRef = useRef<{ orderId: string; orderNumber: string } | null>(null)
+  const mountedRef = useRef(false)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
     if (amount <= 0) return
+    // 토스 위젯은 한 번만 마운트한다 (StrictMode dev 이중 호출 시 약관 위젯 중복 에러 방지)
+    if (mountedRef.current) return
+    mountedRef.current = true
     orderRef.current = { orderId: makeOrderId(), orderNumber: makeOrderNumber() }
-    let cancelled = false
     mountPaymentWidget('#toss-methods', '#toss-agreement', amount).then((w) => {
-      if (!cancelled) {
-        widgetsRef.current = w
-        setReady(true)
-      }
+      widgetsRef.current = w
+      setReady(true)
     })
-    return () => {
-      cancelled = true
-    }
   }, [amount])
 
   const pay = async () => {
