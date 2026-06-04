@@ -7,7 +7,10 @@ describe('ids', () => {
     expect(a).toMatch(/^order_/)
     expect(a).not.toBe(b)
   })
-  it('orderNumber는 4자리 영숫자', () => {
-    expect(makeOrderNumber()).toMatch(/^[A-Z0-9]{4}$/)
+  it('orderNumber는 오늘 N번째 (1부터 증가)', () => {
+    localStorage.clear()
+    expect(makeOrderNumber()).toBe('1')
+    expect(makeOrderNumber()).toBe('2')
+    expect(makeOrderNumber()).toBe('3')
   })
 })
