@@ -1,1 +1,84 @@
-export default function Checkout() { return <div /> }
+import { useEffect, useRef, useState } from 'react'
+import { useCartStore } from '../store/useCartStore'
+import { formatKRW } from '../lib/money'
+import { makeOrderId, makeOrderNumber } from '../lib/ids'
+import { createPendingOrder } from '../lib/orders'
+import { mountPaymentWidget } from '../lib/payments'
+import Header from '../components/Header'
+
+export default function Checkout() {
+  const { items, total, orderType } = useCartStore()
+  const amount = total()
+  const widgetsRef = useRef<Awaited<ReturnType<typeof mountPaymentWidget>> | null>(null)
+  const orderRef = useRef<{ orderId: string; orderNumber: string } | null>(null)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    if (amount <= 0) return
+    orderRef.current = { orderId: makeOrderId(), orderNumber: makeOrderNumber() }
+    let cancelled = false
+    mountPaymentWidget('#toss-methods', '#toss-agreement', amount).then((w) => {
+      if (!cancelled) {
+        widgetsRef.current = w
+        setReady(true)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [amount])
+
+  const pay = async () => {
+    const o = orderRef.current
+    const w = widgetsRef.current
+    if (!o || !w) return
+    await createPendingOrder({
+      orderId: o.orderId,
+      orderNumber: o.orderNumber,
+      orderType: orderType!,
+      items,
+      totalAmount: amount,
+    })
+    sessionStorage.setItem('mm-order-number', o.orderNumber)
+    await w.requestPayment({
+      orderId: o.orderId,
+      orderName: items[0] ? `${items[0].name} 외 ${items.length - 1}건` : '주문',
+      successUrl: `${window.location.origin}/success`,
+      failUrl: `${window.location.origin}/checkout`,
+    })
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Header title="결제하기" />
+      <div className="flex-1">
+        <div className="px-4 py-4 border-b border-neutral-100">
+          {items.map((it) => (
+            <div key={it.lineId} className="flex justify-between py-1">
+              <span>
+                {it.name} × {it.quantity}
+                <span className="block text-sm text-neutral-400">{it.optionSummary}</span>
+              </span>
+              <span>{formatKRW(it.unitPrice * it.quantity)}</span>
+            </div>
+          ))}
+          <div className="flex justify-between pt-3 font-bold">
+            <span>총 결제금액</span>
+            <span>{formatKRW(amount)}</span>
+          </div>
+        </div>
+        <div id="toss-methods" />
+        <div id="toss-agreement" />
+      </div>
+      <div className="sticky bottom-0 p-4 bg-white border-t border-neutral-100">
+        <button
+          onClick={pay}
+          disabled={!ready}
+          className="w-full h-14 rounded-2xl bg-brand text-white font-bold disabled:opacity-40"
+        >
+          {formatKRW(amount)} 결제하기
+        </button>
+      </div>
+    </div>
+  )
+}
