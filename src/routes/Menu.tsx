@@ -8,7 +8,15 @@ import MenuGrid from '../components/MenuGrid'
 
 export default function Menu() {
   const nav = useNavigate()
-  const [cat, setCat] = useState(CATEGORIES[0].id)
+  // 마지막으로 보던 카테고리 유지 (담기 후 메뉴로 돌아와도 같은 탭)
+  const [cat, setCat] = useState(() => {
+    const saved = sessionStorage.getItem('mm-cat')
+    return saved && CATEGORIES.some((c) => c.id === saved) ? saved : CATEGORIES[0].id
+  })
+  const changeCat = (id: string) => {
+    setCat(id)
+    sessionStorage.setItem('mm-cat', id)
+  }
   const orderType = useCartStore((s) => s.orderType)
   const count = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0))
 
@@ -18,7 +26,7 @@ export default function Menu() {
         <span className="font-bold">메이</span>
         <span className="text-sm text-neutral-400">{orderType === 'TAKE_OUT' ? '포장' : '매장'}</span>
       </header>
-      <CategoryTabs active={cat} onChange={setCat} />
+      <CategoryTabs active={cat} onChange={changeCat} />
       <MenuGrid items={MENU.filter((m) => m.categoryId === cat)} />
       <AnimatePresence>
         {count > 0 && (
