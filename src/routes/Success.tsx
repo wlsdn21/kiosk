@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { confirmPayment } from '../lib/orders'
 import { useCartStore } from '../store/useCartStore'
 
@@ -31,11 +32,30 @@ export default function Success() {
   )
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3 px-6 text-center">
-      <div className="text-5xl">✅</div>
-      <h1 className="text-xl font-bold">주문이 완료되었어요</h1>
-      <p className="text-neutral-400">주문번호</p>
-      <p className="text-3xl font-bold tracking-widest">{orderNumber}</p>
-      <button onClick={() => nav('/')} className="mt-6 h-12 px-8 rounded-xl bg-brand text-white font-bold">처음으로</button>
+      <motion.div
+        initial={{ scale: 0, rotate: -20 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 16 }}
+        className="text-5xl"
+      >✅</motion.div>
+      <motion.h1
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18 }} className="text-xl font-bold"
+      >주문이 완료되었어요</motion.h1>
+      <motion.p
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.26 }}
+        className="text-neutral-400"
+      >주문번호</motion.p>
+      <motion.p
+        initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 14 }}
+        className="text-3xl font-bold tracking-widest"
+      >{orderNumber}</motion.p>
+      <motion.button
+        whileTap={{ scale: 0.97 }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+        onClick={() => nav('/')} className="mt-6 h-12 px-8 rounded-xl bg-brand text-white font-bold"
+      >처음으로</motion.button>
     </div>
   )
 }

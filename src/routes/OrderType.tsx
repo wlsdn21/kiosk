@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useCartStore } from '../store/useCartStore'
 import type { OrderType as OT } from '../types'
 
@@ -19,8 +20,12 @@ export default function OrderType() {
         <h1 className="text-2xl font-bold">메이</h1>
         <p className="text-neutral-400 mt-1">주문 방식을 선택해 주세요</p>
       </div>
-      {OPTIONS.map((o) => (
-        <button key={o.type} onClick={() => choose(o.type)}
+      {OPTIONS.map((o, i) => (
+        <motion.button key={o.type} onClick={() => choose(o.type)}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 + i * 0.08, duration: 0.3, ease: 'easeOut' }}
+          whileTap={{ scale: 0.98 }}
           className="flex items-center gap-3 p-4 rounded-2xl border border-neutral-200 text-left">
           <span className="text-2xl">{o.emoji}</span>
           <span className="flex-1">
@@ -28,7 +33,7 @@ export default function OrderType() {
             <span className="block text-sm text-neutral-400">{o.sub}</span>
           </span>
           <span className="text-neutral-300">›</span>
-        </button>
+        </motion.button>
       ))}
     </div>
   )

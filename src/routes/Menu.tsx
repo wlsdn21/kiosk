@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import { MENU, CATEGORIES } from '../data/menu'
 import { useCartStore } from '../store/useCartStore'
 import CategoryTabs from '../components/CategoryTabs'
@@ -19,13 +20,22 @@ export default function Menu() {
       </header>
       <CategoryTabs active={cat} onChange={setCat} />
       <MenuGrid items={MENU.filter((m) => m.categoryId === cat)} />
-      {count > 0 && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-kiosk p-4 bg-white border-t border-neutral-100">
-          <button onClick={() => nav('/cart')} className="w-full h-14 rounded-2xl bg-brand text-white font-bold">
-            장바구니 ({count})
-          </button>
-        </div>
-      )}
+      <AnimatePresence>
+        {count > 0 && (
+          <motion.div
+            initial={{ x: '-50%', y: 80, opacity: 0 }}
+            animate={{ x: '-50%', y: 0, opacity: 1 }}
+            exit={{ x: '-50%', y: 80, opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="fixed bottom-0 left-1/2 w-full max-w-kiosk p-4 bg-white border-t border-neutral-100"
+          >
+            <motion.button whileTap={{ scale: 0.98 }} onClick={() => nav('/cart')}
+              className="w-full h-14 rounded-2xl bg-brand text-white font-bold">
+              장바구니 ({count})
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
