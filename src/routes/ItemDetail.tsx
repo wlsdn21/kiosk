@@ -25,7 +25,7 @@ export default function ItemDetail() {
       .map((g) => g.options.find((o) => o.id === selected[g.id])?.name)
       .filter(Boolean).join(' · ')
     addItem({ itemId: item.id, name: item.name, selected, optionSummary: summary, unitPrice: unit, quantity: qty })
-    nav('/cart')
+    nav('/menu')
   }
 
   return (
