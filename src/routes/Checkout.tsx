@@ -12,7 +12,9 @@ export default function Checkout() {
   const widgetsRef = useRef<Awaited<ReturnType<typeof mountPaymentWidget>> | null>(null)
   const orderRef = useRef<{ orderId: string; orderNumber: string } | null>(null)
   const mountedRef = useRef(false)
+  const orderInsertedRef = useRef(false)
   const [ready, setReady] = useState(false)
+  const [payError, setPayError] = useState<string | null>(null)
 
   useEffect(() => {
     if (amount <= 0) return
@@ -30,20 +32,29 @@ export default function Checkout() {
     const o = orderRef.current
     const w = widgetsRef.current
     if (!o || !w) return
-    await createPendingOrder({
-      orderId: o.orderId,
-      orderNumber: o.orderNumber,
-      orderType: orderType!,
-      items,
-      totalAmount: amount,
-    })
-    sessionStorage.setItem('mm-order-number', o.orderNumber)
-    await w.requestPayment({
-      orderId: o.orderId,
-      orderName: items[0] ? `${items[0].name} 외 ${items.length - 1}건` : '주문',
-      successUrl: `${window.location.origin}/success`,
-      failUrl: `${window.location.origin}/checkout`,
-    })
+    setPayError(null)
+    try {
+      // 주문은 한 번만 insert (requestPayment가 던져도 같은 orderId 중복 insert 방지)
+      if (!orderInsertedRef.current) {
+        await createPendingOrder({
+          orderId: o.orderId,
+          orderNumber: o.orderNumber,
+          orderType: orderType!,
+          items,
+          totalAmount: amount,
+        })
+        orderInsertedRef.current = true
+      }
+      sessionStorage.setItem('mm-order-number', o.orderNumber)
+      await w.requestPayment({
+        orderId: o.orderId,
+        orderName: items[0] ? `${items[0].name} 외 ${items.length - 1}건` : '주문',
+        successUrl: `${window.location.origin}/success`,
+        failUrl: `${window.location.origin}/checkout`,
+      })
+    } catch (e) {
+      setPayError(e instanceof Error ? e.message : '결제 중 오류가 발생했어요. 다시 시도해 주세요.')
+    }
   }
 
   return (
@@ -69,6 +80,7 @@ export default function Checkout() {
         <div id="toss-agreement" />
       </div>
       <div className="sticky bottom-0 p-4 bg-white border-t border-neutral-100">
+        {payError && <p className="mb-2 text-sm text-center text-red-500">{payError}</p>}
         <button
           onClick={pay}
           disabled={!ready}

@@ -26,7 +26,11 @@ type RawItem = { id: string; categoryId: string; name: string; desc: string; pri
 export const MENU: MenuItem[] = (raw as RawItem[]).map((r) => ({
   ...r,
   image: img(r.image),
-  optionGroups: r.optionGroups.map((g) => GROUPS[g]),
+  optionGroups: r.optionGroups.map((g) => {
+    const grp = GROUPS[g]
+    if (!grp) throw new Error(`Unknown optionGroup key "${g}" on menu item "${r.id}"`)
+    return grp
+  }),
 }))
 
 export const itemById = (id: string) => MENU.find((m) => m.id === id)
